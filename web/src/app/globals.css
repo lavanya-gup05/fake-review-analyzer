@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+@import "@fontsource/fraunces/400.css";
+@import "@fontsource/fraunces/500.css";
+@import "@fontsource/fraunces/600-italic.css";
+@import "@fontsource/fraunces/700.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+/*
+  Design system: "Evidence" — a forensic-examiner take on review analysis.
+  Reviews are treated like case exhibits: paper cards on an ink-dark desk,
+  scanned and stamped rather than dropped into a generic stat-card dashboard.
+*/
+:root {
+  --ink-900: #12171b;   /* page background */
+  --ink-800: #1a2126;   /* panel / card background on dark */
+  --ink-700: #232c32;   /* hover / raised surface */
+  --line: #2c363d;      /* hairline dividers on dark */
+  --ink-muted: #8b969e; /* muted text on dark */
+
+  --paper: #f2ede0;     /* evidence card paper color */
+  --paper-line: #dcd4bf;/* hairline on paper */
+  --paper-ink: #23201a; /* text on paper */
+
+  --signal-amber: #e6a13a; /* fake / flagged */
+  --signal-amber-dim: #4a3a22;
+  --signal-teal: #3fa88a;  /* genuine / verified */
+  --signal-teal-dim: #1f3a34;
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@theme inline {
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-line: var(--line);
+  --color-ink-muted: var(--ink-muted);
+  --color-paper: var(--paper);
+  --color-paper-line: var(--paper-line);
+  --color-paper-ink: var(--paper-ink);
+  --color-amber: var(--signal-amber);
+  --color-amber-dim: var(--signal-amber-dim);
+  --color-teal: var(--signal-teal);
+  --color-teal-dim: var(--signal-teal-dim);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--ink-900);
+  color: #ece7db;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--signal-amber);
+  color: var(--paper-ink);
+}
+
+/* Visible keyboard focus everywhere, per accessibility floor */
+:focus-visible {
+  outline: 2px solid var(--signal-amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Signature scanline sweep used on the hero exhibit card */
+@keyframes scan-sweep {
+  0% { transform: translateY(-6%); opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateY(106%); opacity: 0; }
+}
+
+.scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(230, 161, 58, 0.16) 45%,
+    rgba(230, 161, 58, 0.28) 50%,
+    rgba(230, 161, 58, 0.16) 55%,
+    transparent
+  );
+  animation: scan-sweep 5.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes stamp-in {
+  0% { transform: scale(2.2) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(0.94) rotate(-8deg); opacity: 1; }
+  80% { transform: scale(1.04) rotate(-8deg); }
+  100% { transform: scale(1) rotate(-8deg); opacity: 1; }
+}
+
+.stamp-appear {
+  animation: stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* subtle paper grain so exhibit cards don't read as flat UI panels */
+.paper-grain {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(0,0,0,0.02) 0%, transparent 40%),
+    radial-gradient(circle at 80% 60%, rgba(0,0,0,0.025) 0%, transparent 45%);
+}

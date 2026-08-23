@@ -1,0 +1,21 @@
+# Python
+ml/venv/
+ml/__pycache__/
+ml/**/__pycache__/
+*.pyc
+
+# Node / Next.js
+web/node_modules/
+web/.next/
+web/out/
+web/.env*.local
+
+# IDE
+.idea/
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store

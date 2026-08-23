@@ -1,0 +1,223 @@
+{
+  "model_selected": "logistic_regression",
+  "dataset_size": 6000,
+  "train_size": 4800,
+  "test_size": 1200,
+  "vocabulary_size": 3641,
+  "metrics": {
+    "logistic_regression": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "confusion_matrix": [
+        [
+          600,
+          0
+        ],
+        [
+          0,
+          600
+        ]
+      ]
+    },
+    "naive_bayes": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "confusion_matrix": [
+        [
+          600,
+          0
+        ],
+        [
+          0,
+          600
+        ]
+      ]
+    },
+    "svm": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "confusion_matrix": [
+        [
+          600,
+          0
+        ],
+        [
+          0,
+          600
+        ]
+      ]
+    }
+  },
+  "top_terms": {
+    "fake_indicators": [
+      {
+        "term": "product",
+        "weight": 2.938
+      },
+      {
+        "term": "highli",
+        "weight": 2.437
+      },
+      {
+        "term": "seller",
+        "weight": 2.363
+      },
+      {
+        "term": "highli recommend",
+        "weight": 2.168
+      },
+      {
+        "term": "perfect",
+        "weight": 2.096
+      },
+      {
+        "term": "star",
+        "weight": 2.095
+      },
+      {
+        "term": "amaz",
+        "weight": 2.081
+      },
+      {
+        "term": "fast",
+        "weight": 2.001
+      },
+      {
+        "term": "everyon",
+        "weight": 1.986
+      },
+      {
+        "term": "incred",
+        "weight": 1.837
+      },
+      {
+        "term": "everi",
+        "weight": 1.812
+      },
+      {
+        "term": "best",
+        "weight": 1.768
+      },
+      {
+        "term": "everi singl",
+        "weight": 1.577
+      },
+      {
+        "term": "singl",
+        "weight": 1.577
+      },
+      {
+        "term": "ship",
+        "weight": 1.562
+      },
+      {
+        "term": "thank",
+        "weight": 1.549
+      },
+      {
+        "term": "excel",
+        "weight": 1.466
+      },
+      {
+        "term": "five star",
+        "weight": 1.455
+      },
+      {
+        "term": "ever",
+        "weight": 1.4
+      },
+      {
+        "term": "love",
+        "weight": 1.368
+      }
+    ],
+    "genuine_indicators": [
+      {
+        "term": "use",
+        "weight": -2.254
+      },
+      {
+        "term": "though",
+        "weight": -1.694
+      },
+      {
+        "term": "littl",
+        "weight": -1.665
+      },
+      {
+        "term": "week",
+        "weight": -1.555
+      },
+      {
+        "term": "fine",
+        "weight": -1.538
+      },
+      {
+        "term": "sale",
+        "weight": -1.414
+      },
+      {
+        "term": "first",
+        "weight": -1.34
+      },
+      {
+        "term": "feel",
+        "weight": -1.339
+      },
+      {
+        "term": "ve",
+        "weight": -1.318
+      },
+      {
+        "term": "bit",
+        "weight": -1.228
+      },
+      {
+        "term": "month",
+        "weight": -1.197
+      },
+      {
+        "term": "solid",
+        "weight": -1.169
+      },
+      {
+        "term": "year",
+        "weight": -1.162
+      },
+      {
+        "term": "three",
+        "weight": -1.148
+      },
+      {
+        "term": "check",
+        "weight": -1.138
+      },
+      {
+        "term": "chang job",
+        "weight": -1.138
+      },
+      {
+        "term": "job",
+        "weight": -1.138
+      },
+      {
+        "term": "slightli",
+        "weight": -1.132
+      },
+      {
+        "term": "shot",
+        "weight": -1.121
+      },
+      {
+        "term": "gave shot",
+        "weight": -1.121
+      }
+    ]
+  }
+}
