@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 import path from "path";
+import { getPool } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -11,8 +12,10 @@ export const runtime = "nodejs";
 // predict.py resolves its own "models/..." paths relative to its own
 // directory, so we run it with cwd set there.
 const ML_DIR = path.join(process.cwd(), "..", "ml");
+
 // Point directly to the virtual environment's Python executable
 const PYTHON_BIN = process.env.PYTHON_BIN || path.join(ML_DIR, "venv", "bin", "python3");
+
 type AnalyzeRequestBody = {
   reviewText?: string;
   productName?: string;
@@ -22,7 +25,6 @@ type AnalyzeRequestBody = {
 function runPredict(input: object): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     const child = spawn(PYTHON_BIN, ["predict.py"], { cwd: ML_DIR });
-
     let stdout = "";
     let stderr = "";
 
@@ -48,6 +50,38 @@ function runPredict(input: object): Promise<Record<string, unknown>> {
     child.stdin.write(JSON.stringify(input));
     child.stdin.end();
   });
+}
+
+/**
+ * Persists one analyzed review. Storage failures are logged but never
+ * thrown — a DB hiccup shouldn't turn a successful analysis into a 500
+ * for the user, since the prediction itself already succeeded.
+ */
+async function storeAnalysis(
+  reviewText: string,
+  productName: string,
+  productType: string,
+  result: Record<string, unknown>
+) {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      `INSERT INTO analyzed_reviews
+         (review_text, product_name, product_type, prediction, label, confidence, risk_level)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        reviewText,
+        productName || null,
+        productType || null,
+        result.prediction,
+        result.label,
+        result.confidence,
+        result.riskLevel,
+      ]
+    );
+  } catch (dbErr) {
+    console.error("Failed to store analyzed review:", dbErr);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -79,6 +113,10 @@ export async function POST(req: NextRequest) {
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+
+    // Fire-and-forget-ish: awaited, but errors inside are swallowed so
+    // storage never blocks or breaks the response to the user.
+    await storeAnalysis(reviewText, body.productName || "", body.productType || "", result);
 
     return NextResponse.json(result);
   } catch (err) {
