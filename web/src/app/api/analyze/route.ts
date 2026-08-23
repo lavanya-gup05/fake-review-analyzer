@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 import path from "path";
-import { getPool } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -52,38 +51,6 @@ function runPredict(input: object): Promise<Record<string, unknown>> {
   });
 }
 
-/**
- * Persists one analyzed review. Storage failures are logged but never
- * thrown — a DB hiccup shouldn't turn a successful analysis into a 500
- * for the user, since the prediction itself already succeeded.
- */
-async function storeAnalysis(
-  reviewText: string,
-  productName: string,
-  productType: string,
-  result: Record<string, unknown>
-) {
-  try {
-    const pool = await getPool();
-    await pool.query(
-      `INSERT INTO analyzed_reviews
-         (review_text, product_name, product_type, prediction, label, confidence, risk_level)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [
-        reviewText,
-        productName || null,
-        productType || null,
-        result.prediction,
-        result.label,
-        result.confidence,
-        result.riskLevel,
-      ]
-    );
-  } catch (dbErr) {
-    console.error("Failed to store analyzed review:", dbErr);
-  }
-}
-
 export async function POST(req: NextRequest) {
   let body: AnalyzeRequestBody;
   try {
@@ -113,10 +80,6 @@ export async function POST(req: NextRequest) {
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
-
-    // Fire-and-forget-ish: awaited, but errors inside are swallowed so
-    // storage never blocks or breaks the response to the user.
-    await storeAnalysis(reviewText, body.productName || "", body.productType || "", result);
 
     return NextResponse.json(result);
   } catch (err) {
