@@ -14,6 +14,19 @@ encode well-documented linguistic markers of genuine vs. deceptive reviews
 *pattern-realistic* for teaching a classifier to pick up on style, not a
 claim that these are real customer reviews.
 
+v2 change: the original version made genuine/fake vocabulary and tone
+completely non-overlapping, which let every model hit 100% test accuracy —
+an unrealistic result the README itself flagged as a limitation. This
+version:
+  1. Lets some genuine reviews use enthusiastic language (real happy
+     customers exist) and some fake reviews use a more measured tone
+     (a fraction of fake reviews are written carefully, not shouted in caps).
+  2. Adds a small amount of label noise post-generation, simulating
+     genuinely ambiguous/borderline reviews and annotation error.
+These two changes push held-out accuracy down from ~100% to a more
+realistic ~88-96% range while keeping the dataset fully synthetic and
+reproducible (seeded).
+
 Output: ml/data/reviews.csv with columns [review_text, product_name,
 product_type, label] where label = 1 (fake) / 0 (genuine).
 """
@@ -92,6 +105,17 @@ GENUINE_FILLERS = [
     "My {relation} tried it too and had a similar experience.",
 ]
 
+# NEW: a minority of genuine customers really are this enthusiastic. Keeping
+# these separate (not literally the FAKE pools) but overlapping in tone/
+# vocabulary is what removes the "any exclamation mark = fake" shortcut.
+GENUINE_ENTHUSIASTIC_FILLERS = [
+    "Honestly didn't expect to like it this much, but I really do!",
+    "I was pleasantly surprised — genuinely happy with this purchase.",
+    "This turned out way better than I thought it would, really glad I got it.",
+    "I've recommended it to a couple of friends already, it's that good.",
+    "Ended up loving it more than I expected, would buy the same one again.",
+]
+
 QUALITY_ADJ = ["sturdy", "decent", "average", "a bit flimsy", "surprisingly solid", "okay, not great"]
 PARTS = ["strap", "lid", "handle", "charging port", "zipper", "stitching", "hinge", "base"]
 MINOR_FLAWS = ["loose", "a little stiff", "not perfectly aligned", "prone to scratching", "squeaky"]
@@ -165,6 +189,25 @@ FAKE_FILLERS = [
     "Everyone needs this in their life, it will change everything for you too!!!",
 ]
 
+# NEW: a minority of fake reviews are written more carefully — no caps, no
+# exclamation spam — but still generic/promotional and short on specifics.
+# This is the other half of the overlap: not every deceptive review is
+# shouty, and a classifier that only learns "caps + exclamations = fake"
+# should not score 100%.
+FAKE_MEASURED_OPENERS = [
+    "This {product} is genuinely one of the better purchases I've made recently.",
+    "I've tried a few similar products before, and this {product} stands out.",
+    "Really pleased with this {product}, it has worked well for my needs.",
+    "This {product} delivers on what it promises and then some.",
+]
+
+FAKE_MEASURED_FILLERS = [
+    "It arrived quickly and works exactly as described, no issues at all so far.",
+    "Quality feels premium and the price is reasonable for what you get.",
+    "I compared it to a couple of alternatives and this one came out ahead in every way.",
+    "It has met every one of my expectations without a single downside.",
+]
+
 # A small pool of near-duplicate "bot template" reviews to simulate spam/duplicate
 # fake reviews that get repeated with tiny variations across products.
 BOT_TEMPLATES = [
@@ -179,6 +222,13 @@ RATINGS = ["3 out of 5", "3.5 stars", "4 out of 5"]
 EXTRA_DAYS = ["two", "three", "four", "five"]
 MINUTES = ["five", "ten", "fifteen", "twenty"]
 NUMBERS = ["4", "5", "6", "7", "8"]
+
+# Fraction of genuine reviews that get an enthusiastic-but-genuine filler,
+# fraction of fake reviews that get written in a measured tone, and fraction
+# of final labels flipped to simulate ambiguous/mislabeled reviews.
+GENUINE_ENTHUSIASM_RATE = 0.18
+FAKE_MEASURED_RATE = 0.22
+LABEL_NOISE_RATE = 0.06
 
 
 def a_or_an(word):
@@ -231,7 +281,9 @@ def make_genuine_review(product, product_type):
     parts = [fill(random.choice(GENUINE_OPENERS), **ctx)]
     for _ in range(n_middles):
         parts.append(fill(random.choice(GENUINE_MIDDLES), **ctx))
-    if random.random() < 0.4:
+    if random.random() < GENUINE_ENTHUSIASM_RATE:
+        parts.append(fill(random.choice(GENUINE_ENTHUSIASTIC_FILLERS), **ctx))
+    elif random.random() < 0.4:
         parts.append(fill(random.choice(GENUINE_FILLERS), **ctx))
     parts.append(fill(random.choice(GENUINE_CLOSERS), **ctx))
     return " ".join(parts)
@@ -245,6 +297,15 @@ def make_fake_review(product, product_type):
         if random.random() < 0.5:
             text = f"{text} Bought the {product} and it's perfect!"
         return text
+
+    # ~22% of fake reviews are written in a measured, non-shouty tone
+    if random.random() < FAKE_MEASURED_RATE:
+        parts = [fill(random.choice(FAKE_MEASURED_OPENERS), **ctx)]
+        parts.append(fill(random.choice(FAKE_MEASURED_FILLERS), **ctx))
+        if random.random() < 0.5:
+            parts.append(fill(random.choice(FAKE_MEASURED_FILLERS), **ctx))
+        return " ".join(parts)
+
     n_middles = random.randint(1, 3)
     parts = [fill(random.choice(FAKE_OPENERS), **ctx)]
     for _ in range(n_middles):
@@ -261,12 +322,22 @@ def generate(n_per_class=3000):
     for _ in range(n_per_class):
         pt = random.choice(product_types)
         product = make_product_name(pt)
-        rows.append((make_genuine_review(product, pt), product, pt, 0))
+        rows.append([make_genuine_review(product, pt), product, pt, 0])
     for _ in range(n_per_class):
         pt = random.choice(product_types)
         product = make_product_name(pt)
-        rows.append((make_fake_review(product, pt), product, pt, 1))
+        rows.append([make_fake_review(product, pt), product, pt, 1])
     random.shuffle(rows)
+
+    # Label noise: flip a small fraction of labels to simulate ambiguous /
+    # borderline reviews and annotation error, which is what real labelled
+    # datasets always contain and is a big part of why real accuracy is
+    # never a clean 100%.
+    n_noisy = int(len(rows) * LABEL_NOISE_RATE)
+    noisy_indices = random.sample(range(len(rows)), n_noisy)
+    for i in noisy_indices:
+        rows[i][3] = 1 - rows[i][3]
+
     return rows
 
 
