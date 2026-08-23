@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r ml/requirements.txt
 
 COPY web/package.json web/package-lock.json ./web/
 WORKDIR /app/web
-RUN npm ci
+RUN npm install
 
 WORKDIR /app
 COPY . .
