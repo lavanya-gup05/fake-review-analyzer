@@ -78,7 +78,7 @@ const DEVELOPERS = [
     stack: ["Python", "scikit-learn", "Numpy & Pandas", "Data Science"],
     github: "https://github.com/lavanya-gup05",
     linkedin: "https://www.linkedin.com/in/lavanya-gupta-206132298/",
-    resume: "/devResume/lavanya.pdf",
+    resume: "/devResume/Lavanya.pdf",
     email: "mailto:lavanyaprofilo@gmail.com",
     image: "/aboutPics/1.png",
   },
