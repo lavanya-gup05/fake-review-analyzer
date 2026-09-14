@@ -1,122 +1,163 @@
-# Evident — ML-Based Fake Product Review Detection
+# 🕵️ Evident — Fake Review Analyzer
 
-A full-stack web application that classifies product reviews as **likely
-genuine** or **likely fake** based on their textual characteristics, using
-classical NLP + machine learning (TF-IDF + Logistic Regression, compared
-against Naive Bayes and SVM) and a Next.js frontend.
+An ML-powered web application that analyzes product reviews and predicts whether a review is **Likely Genuine** or **Likely Fake**.
 
+The project combines a **Python NLP/ML pipeline** with a **Next.js frontend** to provide predictions, confidence scores, explanations, and model performance insights.
+
+## ✨ Features
+
+* 🔍 Analyze product reviews in real time
+* 🤖 Fake/Genuine review classification
+* 📊 Confidence score for predictions
+* 💡 Explanation of important review indicators
+* 🧠 Comparison of multiple ML models
+* 📈 Model performance metrics
+* 🌐 Interactive Next.js web interface
+* 🐳 Docker support
+* 🔄 Easy model retraining with new datasets
+
+## 🧠 How It Works
+
+```text
+User enters a review
+        ↓
+Next.js Frontend
+        ↓
+/api/analyze
+        ↓
+Python Prediction Pipeline
+        ↓
+Text Preprocessing
+        ↓
+TF-IDF Vectorization
+        ↓
+ML Classifier
+        ↓
+Prediction + Confidence
+        ↓
+Result displayed in UI
 ```
-project/
-  ml/    Python: dataset generation, preprocessing, training, prediction
-  web/   Next.js (TypeScript + Tailwind) frontend + API route
+
+The ML pipeline compares:
+
+* Logistic Regression
+* Naive Bayes
+* Linear SVM
+
+The best-performing model is selected and saved for inference.
+
+## 🛠️ Tech Stack
+
+### Machine Learning
+
+* Python
+* Pandas
+* NumPy
+* Scikit-learn
+* NLP
+* TF-IDF
+* Logistic Regression
+* Naive Bayes
+* Linear SVM
+
+### Frontend
+
+* Next.js
+* TypeScript
+* Tailwind CSS
+* React
+
+### Backend / Integration
+
+* Next.js API Routes
+* Python subprocess
+* JSON-based communication
+
+### Deployment & Tools
+
+* Docker
+* Git
+* GitHub
+
+## 📂 Project Structure
+
+```text
+fake-review-analyzer/
+│
+├── ml/
+│   ├── data/
+│   ├── models/
+│   ├── generate_dataset.py
+│   ├── train.py
+│   ├── predict.py
+│   └── requirements.txt
+│
+├── web/
+│   ├── src/
+│   │   ├── app/
+│   │   │   └── api/
+│   │   │       └── analyze/
+│   │   └── lib/
+│   ├── package.json
+│   └── ...
+│
+├── Dockerfile
+├── .gitignore
+└── README.md
 ```
 
-The two folders must stay **siblings** (both directly inside `project/`) —
-the web app's API route calls the Python scripts using a relative path
-(`../ml`), so if you move one without the other, update
-`web/src/app/api/analyze/route.ts` and `web/src/lib/metrics.ts` accordingly.
+The `ml` and `web` directories must remain siblings because the Next.js API route accesses the Python ML pipeline using a relative path.
 
----
+## ⚙️ ML Pipeline
 
-## 1. Set up the ML pipeline
+The project generates a labelled dataset and trains multiple classification models.
+
+### 1. Generate Dataset
 
 ```bash
-cd project/ml
-python3 -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+cd ml
+
+python generate_dataset.py
 ```
 
-Generate the synthetic dataset (6,000 labelled reviews):
+This generates **6,000 labelled synthetic reviews**.
+
+### 2. Train Models
 
 ```bash
-python3 generate_dataset.py
+python train.py
 ```
 
-Train the models (trains Logistic Regression, Naive Bayes, and a calibrated
-Linear SVM; evaluates all three; saves the best one plus a metrics report):
+The training process:
 
-```bash
-python3 train.py
+```text
+Dataset
+   ↓
+Preprocessing
+   ↓
+TF-IDF Vectorization
+   ↓
+Train Multiple Models
+   ↓
+Evaluate Models
+   ↓
+Select Best Model
+   ↓
+Save Model
 ```
 
-This produces, inside `ml/models/`:
-- `vectorizer.pkl` — the fitted TF-IDF vectorizer
-- `model.pkl` — the selected classifier
-- `stem_map.json` — stem → readable-word lookup, used for the explanation UI
-- `metrics.json` — accuracy/precision/recall/F1 for all three models, shown
-  on the site's **How It Works** page
+Generated files include:
 
-Sanity-check inference directly, without the web app:
-
-```bash
-echo '{"reviewText": "OMG this product is AMAZING!!! Best purchase ever, highly recommend to everyone!!!"}' | python3 predict.py
+```text
+ml/models/
+├── vectorizer.pkl
+├── model.pkl
+├── stem_map.json
+└── metrics.json
 ```
 
-You should see a JSON object with `"prediction": "Likely Fake Review"` and a
-high confidence score.
+These store the trained vectorizer, selected classifier, explanation mapping, and evaluation metrics.
 
-**Keep the same Python environment active** (or note its path) — the Next.js
-API route shells out to `python3` by default. If your Python lives at a
-different path or under a different command (e.g. `python`), set the
-`PYTHON_BIN` environment variable before starting the web app (see below).
+## 🚀 Run Locally
 
-## 2. Run the web app
-
-```bash
-cd project/web
-npm install
-npm run dev
-```
-
-Open **http://localhost:3000**. The Analyzer page will call `/api/analyze`,
-which spawns `ml/predict.py` as a subprocess for each request.
-
-If Python isn't on your `PATH` as `python3`:
-
-```bash
-PYTHON_BIN=python npm run dev        # macOS/Linux, if your command is `python`
-# or point it at a venv directly:
-PYTHON_BIN=/absolute/path/to/project/ml/venv/bin/python npm run dev
-```
-
-To build for production:
-
-```bash
-npm run build
-npm run start
-```
-
----
-
-## Project pages
-
-- **Home** — overview, live example, feature summary
-- **Analyzer** — submit a review, get a verdict + confidence + explanation
-- **How It Works** — the 5-step pipeline, model comparison table, and the
-  actual top learned indicator terms (pulled live from `ml/models/metrics.json`)
-- **About** — objective, tech stack, dataset notes, and a candid limitations
-  section (read this before presenting — it explains why test accuracy is
-  ~100% on the synthetic data and what that does/doesn't mean)
-
-## Retraining or extending
-
-- To change dataset size or add product categories: edit
-  `ml/generate_dataset.py` and rerun `python3 generate_dataset.py && python3 train.py`.
-- To swap in a real dataset: replace `ml/data/reviews.csv` with your own
-  file using the same columns (`review_text, product_name, product_type,
-  label`, where `label` is `0` for genuine / `1` for fake), then rerun
-  `python3 train.py`.
-- To change which model gets deployed: edit the selection logic at the
-  bottom of `ml/train.py`.
-
-## Known limitations (see also the in-app About page)
-
-The training data is **synthetic** — generated from sentence templates
-designed to encode documented style differences between genuine and
-deceptive reviews, not scraped from a real marketplace. This is why the
-held-out test accuracy is ~100%: the synthetic classes are cleanly
-separable by construction. On real review text, expect lower and more
-varied performance across models. Swapping in a real labelled dataset (see
-above) is the natural next step before treating this as more than a
-demonstration.
+### 1. S
