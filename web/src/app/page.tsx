@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, FileSearch, Percent, MessageSquareText, Layers } from "lucide-react";
 import ExhibitCard from "@/components/ExhibitCard";
+import Reveal from "@/components/Reveal";
 
 const DEMO_REVIEW =
   "Absolutely LOVE this product!!! Best purchase ever, highly recommend to everyone, five stars all the way, you will not regret it!!!";
@@ -53,8 +54,8 @@ export default function Home() {
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-5 pb-16 pt-14 sm:px-8 sm:pt-20 lg:pt-24">
         <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-          <div>
-            <span className="inline-block rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-muted">
+          <Reveal>
+            <span className="inline-block rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-ink-muted transition-colors duration-300 hover:border-amber/40 hover:text-[#ece7db]">
               NLP · Machine Learning · Next.js
             </span>
             <h1 className="mt-6 font-display text-[2.6rem] leading-[1.05] tracking-tight sm:text-[3.4rem]">
@@ -69,75 +70,85 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link
                 href="/analyzer"
-                className="group inline-flex items-center gap-2 rounded-full bg-amber px-6 py-3 font-mono text-sm uppercase tracking-wide text-[#1c1305] transition-transform hover:scale-[1.03]"
+                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-amber px-6 py-3 font-mono text-sm uppercase tracking-wide text-[#1c1305] transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_10px_30px_-8px_rgba(230,161,58,0.6)]"
               >
-                Analyze a review
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <span className="cta-shine pointer-events-none absolute inset-0" />
+                <span className="relative">Analyze a review</span>
+                <ArrowRight className="relative h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/how-it-works"
-                className="font-mono text-sm uppercase tracking-wide text-ink-muted underline decoration-line underline-offset-4 hover:text-[#ece7db]"
+                className="link-sweep relative py-1 font-mono text-sm uppercase tracking-wide text-ink-muted transition-colors duration-300 hover:text-[#ece7db]"
               >
                 See how it works
               </Link>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="relative">
-            <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-gradient-to-br from-amber/10 via-transparent to-teal/10 blur-2xl" />
-            <ExhibitCard
-              reviewText={DEMO_REVIEW}
-              productName="Wireless Earbuds Pro"
-              productType="Electronics"
-              verdict="fake"
-              confidence={96.8}
-              topFeatures={[
-                { term: "highly recommend", contribution: 0.4, direction: "fake" },
-                { term: "incredible", contribution: 0.4, direction: "fake" },
-                { term: "everyone", contribution: 0.3, direction: "fake" },
-              ]}
-              showScanline
-              caseNumber="0417"
-            />
-          </div>
+          <Reveal delay={150}>
+            <div className="relative">
+              <div className="hero-glow absolute -inset-6 -z-10 rounded-[2rem] bg-gradient-to-br from-amber/10 via-transparent to-teal/10 blur-2xl" />
+              <ExhibitCard
+                reviewText={DEMO_REVIEW}
+                productName="Wireless Earbuds Pro"
+                productType="Electronics"
+                verdict="fake"
+                confidence={96.8}
+                topFeatures={[
+                  { term: "highly recommend", contribution: 0.4, direction: "fake" },
+                  { term: "incredible", contribution: 0.4, direction: "fake" },
+                  { term: "everyone", contribution: 0.3, direction: "fake" },
+                ]}
+                showScanline
+                caseNumber="0417"
+              />
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Problem framing */}
       <section className="border-y border-line bg-ink-800/40">
         <div className="mx-auto max-w-4xl px-5 py-16 sm:px-8">
-          <h2 className="font-display text-2xl sm:text-3xl">Why this matters</h2>
-          <p className="mt-5 text-[16px] leading-relaxed text-ink-muted">
-            Online reviews shape purchasing decisions more than almost any other
-            piece of product information. When a meaningful share of them are
-            paid, incentivized, or machine-generated, ratings stop reflecting
-            real experience — misleading shoppers, propping up low-quality
-            products, and eroding trust in the marketplace itself.
-          </p>
-          <p className="mt-4 text-[16px] leading-relaxed text-ink-muted">
-            Evident approaches this narrowly and honestly: it analyzes the{" "}
-            <em className="text-[#ece7db] not-italic">textual characteristics</em>{" "}
-            of a review — phrasing, specificity, sentiment balance — and reports
-            a probability, not a verdict of fact. It cannot confirm someone was
-            paid or that an account is a bot; that requires data this system
-            doesn&rsquo;t have access to.
-          </p>
+          <Reveal>
+            <h2 className="font-display text-2xl sm:text-3xl">Why this matters</h2>
+            <p className="mt-5 text-[16px] leading-relaxed text-ink-muted">
+              Online reviews shape purchasing decisions more than almost any other
+              piece of product information. When a meaningful share of them are
+              paid, incentivized, or machine-generated, ratings stop reflecting
+              real experience — misleading shoppers, propping up low-quality
+              products, and eroding trust in the marketplace itself.
+            </p>
+            <p className="mt-4 text-[16px] leading-relaxed text-ink-muted">
+              Evident approaches this narrowly and honestly: it analyzes the{" "}
+              <em className="text-[#ece7db] not-italic">textual characteristics</em>{" "}
+              of a review — phrasing, specificity, sentiment balance — and reports
+              a probability, not a verdict of fact. It cannot confirm someone was
+              paid or that an account is a bot; that requires data this system
+              doesn&rsquo;t have access to.
+            </p>
+          </Reveal>
         </div>
       </section>
 
       {/* Features */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <h2 className="font-display text-2xl sm:text-3xl">What it does</h2>
+        <Reveal>
+          <h2 className="font-display text-2xl sm:text-3xl">What it does</h2>
+        </Reveal>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {FEATURES.map(({ icon: Icon, title, body }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-line bg-ink-800 p-6 transition-colors hover:border-amber/40"
-            >
-              <Icon className="h-5 w-5 text-amber" strokeWidth={1.75} />
-              <h3 className="mt-4 font-display text-lg">{title}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">{body}</p>
-            </div>
+          {FEATURES.map(({ icon: Icon, title, body }, i) => (
+            <Reveal key={title} delay={i * 90}>
+              <div className="feature-card group relative overflow-hidden rounded-2xl border border-line bg-ink-800 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-amber/40 hover:shadow-[0_20px_45px_-25px_rgba(230,161,58,0.35)]">
+                <div className="feature-shine pointer-events-none absolute inset-0" />
+                <Icon
+                  className="relative h-5 w-5 text-amber transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
+                  strokeWidth={1.75}
+                />
+                <h3 className="relative mt-4 font-display text-lg">{title}</h3>
+                <p className="relative mt-2 text-[15px] leading-relaxed text-ink-muted">{body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -145,27 +156,30 @@ export default function Home() {
       {/* Example exhibits */}
       <section className="border-t border-line bg-ink-800/40">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-          <h2 className="font-display text-2xl sm:text-3xl">Two exhibits, side by side</h2>
-          <p className="mt-3 max-w-2xl text-[15px] text-ink-muted">
-            The same model, examining two different reviews. Highlighted terms are
-            the words that moved the prediction most.
-          </p>
+          <Reveal>
+            <h2 className="font-display text-2xl sm:text-3xl">Two exhibits, side by side</h2>
+            <p className="mt-3 max-w-2xl text-[15px] text-ink-muted">
+              The same model, examining two different reviews. Highlighted terms are
+              the words that moved the prediction most.
+            </p>
+          </Reveal>
           <div className="mt-8 grid gap-8 lg:grid-cols-2">
-            {EXAMPLES.map((ex) => (
-              <ExhibitCard
-                key={ex.productName}
-                reviewText={ex.text}
-                productName={ex.productName}
-                productType={ex.productType}
-                verdict={ex.verdict}
-                confidence={ex.confidence}
-                topFeatures={ex.features.map((t) => ({
-                  term: t,
-                  contribution: 0.3,
-                  direction: ex.verdict,
-                }))}
-                caseNumber={ex.verdict === "fake" ? "0288" : "0112"}
-              />
+            {EXAMPLES.map((ex, i) => (
+              <Reveal key={ex.productName} delay={i * 120}>
+                <ExhibitCard
+                  reviewText={ex.text}
+                  productName={ex.productName}
+                  productType={ex.productType}
+                  verdict={ex.verdict}
+                  confidence={ex.confidence}
+                  topFeatures={ex.features.map((t) => ({
+                    term: t,
+                    contribution: 0.3,
+                    direction: ex.verdict,
+                  }))}
+                  caseNumber={ex.verdict === "fake" ? "0288" : "0112"}
+                />
+              </Reveal>
             ))}
           </div>
         </div>
@@ -173,18 +187,81 @@ export default function Home() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-5 py-20 text-center sm:px-8">
-        <h2 className="font-display text-2xl sm:text-3xl">Try it on a review of your own</h2>
-        <p className="mx-auto mt-3 max-w-md text-[15px] text-ink-muted">
-          Paste a real or made-up review and see the model&rsquo;s reasoning in real time.
-        </p>
-        <Link
-          href="/analyzer"
-          className="mt-7 inline-flex items-center gap-2 rounded-full bg-amber px-6 py-3 font-mono text-sm uppercase tracking-wide text-[#1c1305] transition-transform hover:scale-[1.03]"
-        >
-          Open the analyzer
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <Reveal>
+          <h2 className="font-display text-2xl sm:text-3xl">Try it on a review of your own</h2>
+          <p className="mx-auto mt-3 max-w-md text-[15px] text-ink-muted">
+            Paste a real or made-up review and see the model&rsquo;s reasoning in real time.
+          </p>
+          <Link
+            href="/analyzer"
+            className="group relative mt-7 inline-flex items-center gap-2 overflow-hidden rounded-full bg-amber px-6 py-3 font-mono text-sm uppercase tracking-wide text-[#1c1305] transition-all duration-300 hover:scale-[1.04] hover:shadow-[0_10px_30px_-8px_rgba(230,161,58,0.6)]"
+          >
+            <span className="cta-shine pointer-events-none absolute inset-0" />
+            <span className="relative">Open the analyzer</span>
+            <ArrowRight className="relative h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </Reveal>
       </section>
+
+      <style jsx global>{`
+        @keyframes hero-glow-pulse {
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
+        }
+        .hero-glow {
+          animation: hero-glow-pulse 6s ease-in-out infinite;
+        }
+
+        .cta-shine {
+          background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+          background-size: 250% 250%;
+          background-position: 200% 0;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .group:hover .cta-shine {
+          opacity: 1;
+          animation: shine-sweep-cta 1s ease forwards;
+        }
+        @keyframes shine-sweep-cta {
+          from { background-position: 200% 0; }
+          to { background-position: -50% 0; }
+        }
+
+        .feature-shine {
+          background: linear-gradient(120deg, transparent 30%, rgba(230, 161, 58, 0.06) 50%, transparent 70%);
+          background-size: 250% 250%;
+          background-position: 200% 0;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+        .feature-card:hover .feature-shine {
+          opacity: 1;
+          animation: shine-sweep-cta 1.2s ease forwards;
+        }
+
+        .link-sweep::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: -2px;
+          height: 1px;
+          width: 100%;
+          background: currentColor;
+          transform: scaleX(0.4);
+          transform-origin: left;
+          transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+          opacity: 0.6;
+        }
+        .link-sweep:hover::after {
+          transform: scaleX(1);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-glow { animation: none; }
+          .cta-shine, .feature-shine { animation: none !important; opacity: 0 !important; }
+        }
+      `}</style>
     </div>
   );
 }
