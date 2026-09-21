@@ -6,6 +6,7 @@ RUN apt-get update && \
 
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHON_BIN=/opt/venv/bin/python3
 
 WORKDIR /app
 
@@ -14,11 +15,12 @@ RUN pip install --no-cache-dir -r ml/requirements.txt
 
 COPY web/package.json web/package-lock.json ./web/
 WORKDIR /app/web
-RUN npm install
+RUN npm ci
 
 WORKDIR /app
 COPY . .
 
+# Train the model at build time so models/*.pkl exist at runtime
 WORKDIR /app/ml
 RUN python3 generate_dataset.py && python3 train.py
 
