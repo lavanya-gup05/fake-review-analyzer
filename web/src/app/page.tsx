@@ -202,66 +202,6 @@ export default function Home() {
           </Link>
         </Reveal>
       </section>
-
-      <style jsx global>{`
-        @keyframes hero-glow-pulse {
-          0%, 100% { opacity: 0.7; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.05); }
-        }
-        .hero-glow {
-          animation: hero-glow-pulse 6s ease-in-out infinite;
-        }
-
-        .cta-shine {
-          background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
-          background-size: 250% 250%;
-          background-position: 200% 0;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        .group:hover .cta-shine {
-          opacity: 1;
-          animation: shine-sweep-cta 1s ease forwards;
-        }
-        @keyframes shine-sweep-cta {
-          from { background-position: 200% 0; }
-          to { background-position: -50% 0; }
-        }
-
-        .feature-shine {
-          background: linear-gradient(120deg, transparent 30%, rgba(230, 161, 58, 0.06) 50%, transparent 70%);
-          background-size: 250% 250%;
-          background-position: 200% 0;
-          opacity: 0;
-          transition: opacity 0.4s ease;
-        }
-        .feature-card:hover .feature-shine {
-          opacity: 1;
-          animation: shine-sweep-cta 1.2s ease forwards;
-        }
-
-        .link-sweep::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          bottom: -2px;
-          height: 1px;
-          width: 100%;
-          background: currentColor;
-          transform: scaleX(0.4);
-          transform-origin: left;
-          transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
-          opacity: 0.6;
-        }
-        .link-sweep:hover::after {
-          transform: scaleX(1);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .hero-glow { animation: none; }
-          .cta-shine, .feature-shine { animation: none !important; opacity: 0 !important; }
-        }
-      `}</style>
     </div>
   );
 }
