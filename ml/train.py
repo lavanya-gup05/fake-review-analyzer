@@ -2,9 +2,11 @@
 train.py
 
 Loads the labelled review dataset, applies NLP preprocessing, extracts
-TF-IDF features, trains three classical ML models (Logistic Regression,
-Naive Bayes, Linear SVM), evaluates them on a held-out test split, and
-saves the vectorizer + chosen model + metrics report to ml/models/.
+TF-IDF features, and trains three classical ML models (Logistic Regression,
+Naive Bayes, Linear SVM) — each tuned via GridSearchCV over 5-fold
+stratified cross-validation rather than a single fixed configuration.
+Evaluates all three on a held-out test split, and saves the vectorizer +
+chosen model + a detailed metrics/tuning report to ml/models/.
 
 Run: python3 train.py
 """
@@ -18,7 +20,7 @@ import pandas as pd
 from scipy.sparse import hstack, csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.svm import LinearSVC
@@ -32,6 +34,12 @@ from preprocess import preprocess, build_stem_display_map
 
 DATA_PATH = "data/reviews.csv"
 MODELS_DIR = "models"
+
+# 5-fold stratified CV used for every hyperparameter search below. Stratified
+# keeps the fake/genuine ratio consistent across folds even though we only
+# have two classes, and 5 folds is the standard balance between a stable
+# score estimate and training time on a dataset this size.
+CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 
 def load_data():
@@ -58,6 +66,27 @@ def evaluate(name, model, X_test, y_test):
     return metrics
 
 
+def tune(name, estimator, param_grid, X_train, y_train):
+    """Run GridSearchCV over `param_grid` with 5-fold stratified CV, scoring
+    on F1 (appropriate for a balanced-ish binary classification task), and
+    report the best cross-validated score alongside the winning params."""
+    print(f"\nTuning {name} over {param_grid} ...")
+    t0 = time.time()
+    grid = GridSearchCV(
+        estimator, param_grid, cv=CV, scoring="f1", n_jobs=-1, refit=True
+    )
+    grid.fit(X_train, y_train)
+    elapsed = time.time() - t0
+    print(f"  best params: {grid.best_params_}")
+    print(f"  best CV F1:  {grid.best_score_:.4f}  ({elapsed:.1f}s, {len(grid.cv_results_['params'])} candidates x 5 folds)")
+    return grid.best_estimator_, {
+        "best_params": grid.best_params_,
+        "best_cv_f1": round(float(grid.best_score_), 4),
+        "cv_folds": CV.get_n_splits(),
+        "candidates_tried": len(grid.cv_results_["params"]),
+    }
+
+
 def main():
     df = load_data()
 
@@ -67,8 +96,8 @@ def main():
     )
 
     vectorizer = TfidfVectorizer(
-        max_features=5000,
-        ngram_range=(1, 2),   # unigrams + bigrams capture phrases like "highly recommend"
+        max_features=8000,     # widened from 5000 now that tuning can make good use of a richer vocabulary
+        ngram_range=(1, 2),    # unigrams + bigrams capture phrases like "highly recommend"
         min_df=2,
         sublinear_tf=True,
     )
@@ -95,22 +124,43 @@ def main():
     ])
 
     all_metrics = {}
+    all_tuning = {}
 
-    # --- Logistic Regression ---
-    lr = LogisticRegression(max_iter=1000, C=1.0)
-    lr.fit(X_train, y_train)
+    # --- Logistic Regression: tune C (inverse regularization strength) ---
+    lr, lr_tuning = tune(
+        "Logistic Regression",
+        LogisticRegression(max_iter=2000),
+        {"C": [0.01, 0.1, 1, 3, 10, 30, 100], "solver": ["lbfgs"]},
+        X_train, y_train,
+    )
     all_metrics["logistic_regression"] = evaluate("Logistic Regression", lr, X_test, y_test)
+    all_tuning["logistic_regression"] = lr_tuning
 
-    # --- Multinomial Naive Bayes ---
-    nb = MultinomialNB()
-    nb.fit(X_train, y_train)
+    # --- Multinomial Naive Bayes: tune the additive smoothing parameter ---
+    nb, nb_tuning = tune(
+        "Naive Bayes",
+        MultinomialNB(),
+        {"alpha": [0.01, 0.05, 0.1, 0.5, 1.0, 2.0]},
+        X_train, y_train,
+    )
     all_metrics["naive_bayes"] = evaluate("Naive Bayes", nb, X_test, y_test)
+    all_tuning["naive_bayes"] = nb_tuning
 
-    # --- Linear SVM (calibrated so we get usable probability estimates) ---
-    svm_base = LinearSVC(max_iter=5000)
-    svm = CalibratedClassifierCV(svm_base, cv=3)
+    # --- Linear SVM: tune C on the base estimator, then calibrate the winner ---
+    # Calibration (Platt scaling) is wrapped in its own CV, so we tune C on
+    # the uncalibrated LinearSVC first (fast) and only calibrate once, on the
+    # winning C, instead of calibrating inside the grid search loop.
+    svm_base, svm_tuning = tune(
+        "Linear SVM (pre-calibration)",
+        LinearSVC(max_iter=5000),
+        {"C": [0.01, 0.1, 1, 3, 10]},
+        X_train, y_train,
+    )
+    print("Calibrating winning SVM (Platt scaling, 5-fold)...")
+    svm = CalibratedClassifierCV(svm_base, cv=CV)
     svm.fit(X_train, y_train)
     all_metrics["svm"] = evaluate("Linear SVM (calibrated)", svm, X_test, y_test)
+    all_tuning["svm"] = svm_tuning
 
     # --- Model selection ---
     # We pick Logistic Regression as the deployed model whenever its F1 is
@@ -132,6 +182,7 @@ def main():
 
     print(f"\n=> Selected model for deployment: {chosen_name} "
           f"(F1={all_metrics[chosen_name]['f1']}, best available F1={best_f1} from {best_name})")
+    print(f"   Tuned hyperparameters: {all_tuning[chosen_name]['best_params']}")
 
     joblib.dump(vectorizer, f"{MODELS_DIR}/vectorizer.pkl")
     joblib.dump(type_encoder, f"{MODELS_DIR}/type_encoder.pkl")
@@ -174,6 +225,7 @@ def main():
         "vocabulary_size": len(vectorizer.vocabulary_),
         "product_type_categories": list(type_encoder.categories_[0]),
         "metrics": all_metrics,
+        "tuning": all_tuning,
         "top_terms": top_terms,
         "category_effect": category_effect,
     }
