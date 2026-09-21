@@ -12,8 +12,10 @@ export const runtime = "nodejs";
 // directory, so we run it with cwd set there.
 const ML_DIR = path.join(process.cwd(), "..", "ml");
 
-// Point directly to the virtual environment's Python executable
-const PYTHON_BIN = process.env.PYTHON_BIN || path.join(ML_DIR, "venv", "bin", "python3");
+// PYTHON_BIN can be overridden via env (Docker/Render sets it to /opt/venv/bin/python3).
+// Locally it falls back to the venv inside ml/.
+const PYTHON_BIN =
+  process.env.PYTHON_BIN || path.join(ML_DIR, "venv", "bin", "python3");
 
 type AnalyzeRequestBody = {
   reviewText?: string;
@@ -23,12 +25,17 @@ type AnalyzeRequestBody = {
 
 function runPredict(input: object): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
-    const child = spawn(PYTHON_BIN, ["predict.py"], { cwd: ML_DIR });
+    const child = spawn(/*turbopackIgnore: true*/ PYTHON_BIN, ["predict.py"], {
+      cwd: ML_DIR,
+    });
     let stdout = "";
     let stderr = "";
 
     child.stdout.on("data", (chunk) => (stdout += chunk.toString()));
     child.stderr.on("data", (chunk) => (stderr += chunk.toString()));
+
+    // Avoid an unhandled EPIPE crash if Python dies before reading stdin
+    child.stdin.on("error", () => {});
 
     child.on("error", (err) => {
       reject(new Error(`Failed to start Python process: ${err.message}`));
